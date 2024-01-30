@@ -1,0 +1,82 @@
+import sqlite3
+
+conn = sqlite3.connect('registration.db')
+cursor = conn.cursor()
+
+cursor. Execute('''
+    CREATE TABLE IF NOT EXISTS Registration (
+        ID INTEGER PRIMARY KEY AUTOINCREMENT,
+        Name TEXT NOT NULL,
+        Email TEXT NOT NULL,
+        DateOfBirth DATE,
+        -- Add additional fields as needed
+        CONSTRAINT email_unique UNIQUE (Email)
+    );
+''')
+
+conn.commit()
+conn.close()
+
+
+def create_record(name, email, date_of_birth):
+    conn = sqlite3.connect('registration.db')
+    cursor = conn.cursor()
+    try:
+        cursor.execute('''
+            INSERT INTO Registration (Name, Email, DateOfBirth)
+            VALUES (?, ?, ?)
+        ''', (name, email, date_of_birth))
+        conn.commit()
+        print("Record created successfully.")
+    except sqlite3.IntegrityError:
+        print("Error: Email must be unique. Record not created.")
+    finally:
+        conn.close()
+
+def read_records():
+    conn = sqlite3.connect('registration.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM Registration')
+    records = cursor.fetchall()
+    conn.close()
+    return records
+
+def update_record(record_id, new_name, new_email, new_date_of_birth):
+    conn = sqlite3.connect('registration.db')
+    cursor = conn.cursor()
+    try:
+        cursor.execute('''
+            UPDATE Registration
+            SET Name=?, Email=?, DateOfBirth=?
+            WHERE ID=?
+        ''', (new_name, new_email, new_date_of_birth, record_id))
+        conn.commit()
+        print("Record updated successfully.")
+    except sqlite3.IntegrityError:
+        print("Error: Email must be unique. Record not updated.")
+    finally:
+        conn.close()
+
+def delete_record(record_id):
+    conn = sqlite3.connect('registration.db')
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM Registration WHERE ID=?', (record_id,))
+    conn.commit()
+    print("Record deleted successfully.")
+    conn.close()
+
+create_record('John Doe', 'john.doe@example.com', '1990-01-01')
+create_record('Jane Smith', 'jane.smith@example.com', '1985-05-15')
+
+print("Records before update:")
+print(read_records())
+
+update_record(1, 'John Updated', 'john.updated@example.com', '1992-02-02')
+
+print("Records after update:")
+print(read_records())
+
+delete_record(2)
+
+print("Records after delete:")
+print(read_records())
